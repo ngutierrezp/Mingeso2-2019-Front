@@ -1,4 +1,4 @@
-// install docker 
+//install docker 
 // tutorial : https://getintodevops.com/blog/the-simple-way-to-run-docker-in-docker-for-ci
 
 pipeline {
@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('install') {
             steps {
-                
+                sh 'chmod +x frontDeploy.sh'
                 sh 'npm install'
             }
         }
@@ -22,39 +22,15 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh './node_modules/.bin/wdio wdio.conf.js'
+                sh 'npm run test'
+                sh 'docker --version'
+                echo 'Testing..'
             }
         }
         stage('Deploy') {
-            steps { 
-                sh 'ls'
-                sh '''
-                    IMAGE=vuejs-docker
-                    CONTAINER=vuejs-docker-container
-                    PORT=9090
-                    EXPORT=80
-
-                    docker build -t $IMAGE .
-
-                    if docker container ls | grep $CONTAINER > /dev/null; then
-                    docker container stop $CONTAINER
-                    fi
-
-
-                    if docker container ls -a | grep $CONTAINER > /dev/null; then
-                    docker container rm $CONTAINER
-                    fi
-
-
-                    docker run --name $CONTAINER -d -p $PORT:$EXPORT $IMAGE
-
-                '''
+            steps {
+                sh './frontDeploy.sh'
             }
-        }
-    }
-    post {
-        always {
-            junit '*.xml'
         }
     }
 }
